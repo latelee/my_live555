@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     strcpy(inputFileName, argv[1]);
   }
-  printf("Using file: %s\n", inputFileName);
+  rtspLog("Using file: %s\n", inputFileName);
   
   // Begin by setting up our usage environment:
   TaskScheduler* scheduler = BasicTaskScheduler::createNew();
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   }
 
   // 组播
-  // note 在mingw环境，组播部分代码加上“{}”，会有运行时错误，原因未知
+  // note 在mingw/linux环境，组播部分代码加上“{}”，会有运行时错误，原因未知
   // Create 'groupsocks' for RTP and RTCP:
   struct in_addr destinationAddress;
   destinationAddress.s_addr = chooseRandomIPv4SSMAddress(*env);
@@ -89,7 +89,8 @@ int main(int argc, char** argv) {
   announceStream(rtspServer, sms, streamName, inputFileName);
 
   // Start the streaming:
-  *env << "Beginning streaming...\n";
+  //*env << "Beginning streaming...\n";
+  rtspLog("Beginning streaming...\n");
   play(); // 播放
 
   ////////////////////////////////////////////////////////////////////////

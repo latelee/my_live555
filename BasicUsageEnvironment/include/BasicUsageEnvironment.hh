@@ -24,6 +24,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "BasicUsageEnvironment0.hh"
 #endif
 
+//#include <BasicLog.hh> // not work...
+// ok
+extern void rtspLog(const char* fmt, ...)__attribute__((format(printf,1,2)));
+
 class BasicUsageEnvironment: public BasicUsageEnvironment0 {
 public:
   static BasicUsageEnvironment* createNew(TaskScheduler& taskScheduler);
