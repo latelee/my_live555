@@ -46,6 +46,21 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #define _O_BINARY O_BINARY
 #endif
 
+#define _LL_DEBUG_
+#define default_level 5
+
+#ifdef _LL_DEBUG_
+    #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
+    #define LL_DEBUG(level, fmt, ...)  \
+    do { \
+        if (level < default_level)\
+            printf("[DEBUG (%s) %s().%d]: " fmt, __FILE__, __func__, __LINE__, ##__VA_ARGS__);\
+    }while (0)
+#else
+    #define debug(fmt, ...)
+    #define LL_DEBUG(fmt, ...)
+#endif
+
 class TaskScheduler; // forward
 
 // An abstract base class, subclassed for each use of the library
