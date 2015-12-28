@@ -103,6 +103,7 @@ FramedSource* H264VideoFileServerMediaSubsession::createNewStreamSource(unsigned
   estBitrate = 500; // kbps, estimate
 
   // Create the video source:
+  // 这是文件Source，所以使用ByteStreamFileSource
   ByteStreamFileSource* fileSource = ByteStreamFileSource::createNew(envir(), fFileName);
   if (fileSource == NULL) return NULL;
   fFileSize = fileSource->fileSize();

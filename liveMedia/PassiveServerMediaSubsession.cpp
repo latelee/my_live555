@@ -158,6 +158,8 @@ void PassiveServerMediaSubsession
     Groupsock* rtcpGS = fRTCPInstance->RTCPgs();
     serverRTCPPort = rtcpGS->port();
   }
+
+  // 组播情况下，为什么会是NULL呢?
   streamToken = NULL; // not used
 
   // Make a record of this client's source - for RTCP RR handling:

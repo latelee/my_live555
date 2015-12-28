@@ -1474,7 +1474,8 @@ void RTSPServer::RTSPClientSession
       // This is the first "SETUP" for this session.  Set up our array of states for all of this session's subsessions (tracks):
       ServerMediaSubsessionIterator iter(*fOurServerMediaSession);
       for (fNumStreamStates = 0; iter.next() != NULL; ++fNumStreamStates) {} // begin by counting the number of subsessions (tracks)
-      
+
+      // ¶¯Ì¬´´½¨fStreamStates
       fStreamStates = new struct streamState[fNumStreamStates];
       
       iter.reset();

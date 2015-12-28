@@ -75,6 +75,8 @@ void FramedSource::getNextFrame(unsigned char* to, unsigned maxSize,
   fOnCloseClientData = onCloseClientData;
   fIsCurrentlyAwaitingData = True;
 
+  // 是文件dource的，调用ByteStreamFileSource类的doGetNextFrame函数
+  // 最后又会调用到本类的afterGetting函数
   doGetNextFrame();
 }
 

@@ -99,7 +99,7 @@ void ByteStreamFileSource::doGetNextFrame() {
   }
 
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
-  doReadFromFile();
+  doReadFromFile(); // 读取文件内容
 #else
   if (!fHaveStartedReading) {
     // Await readable data from the file:
@@ -126,6 +126,7 @@ void ByteStreamFileSource::fileReadableHandler(ByteStreamFileSource* source, int
   source->doReadFromFile();
 }
 
+// file source的，在此函数读取文件
 void ByteStreamFileSource::doReadFromFile() {
   // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
   if (fLimitNumBytesToStream && fNumBytesToStream < (u_int64_t)fMaxSize) {

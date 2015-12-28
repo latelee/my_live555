@@ -82,6 +82,7 @@ OnDemandServerMediaSubsession::sdpLines() {
   return fSDPLines;
 }
 
+// note 与组播的相同函数名不同，streamToken是有赋值的
 void OnDemandServerMediaSubsession
 ::getStreamParameters(unsigned clientSessionId,
 		      netAddressBits clientAddress,
