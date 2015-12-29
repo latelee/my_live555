@@ -73,6 +73,8 @@ Boolean MediaSink::startPlaying(MediaSource& source,
   }
   fSource = (FramedSource*)&source;
 
+DEBUG_MARK
+
   fAfterFunc = afterFunc;
   fAfterClientData = afterClientData;
   return continuePlaying();
@@ -84,6 +86,7 @@ void MediaSink::stopPlaying() {
 
   // Cancel any pending tasks:
   envir().taskScheduler().unscheduleDelayedTask(nextTask());
+DEBUG_MARK
 
   fSource = NULL; // indicates that we can be played again
   fAfterFunc = NULL;

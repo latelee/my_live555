@@ -1,2 +1,5 @@
-For documentation and instructions for building this software,
-see <http://www.live555.com/liveMedia/>
+这是Late Lee学习live555的工程，更多信息，请参考http://www.live555.com/liveMedia/
+
+note:
+UsageEnvironment.hh文件定义的LL_DEBUG宏，为方便跟踪各函数调用流程。可以设置不同的打印等级，方便控制打印信息。
+如果单纯跟踪代码，使用DEBUG_MARK即可，不需要时注释掉该函数。

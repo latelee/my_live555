@@ -98,8 +98,10 @@ void ByteStreamFileSource::doGetNextFrame() {
     return;
   }
 
+DEBUG_MARK
+  // 读取文件内容
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
-  doReadFromFile(); // 读取文件内容
+  doReadFromFile(); // 这里是windows环境的
 #else
   if (!fHaveStartedReading) {
     // Await readable data from the file:
@@ -127,6 +129,7 @@ void ByteStreamFileSource::fileReadableHandler(ByteStreamFileSource* source, int
 }
 
 // file source的，在此函数读取文件
+// 一次读fMaxSize，不一定一次只读一帧
 void ByteStreamFileSource::doReadFromFile() {
   // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
   if (fLimitNumBytesToStream && fNumBytesToStream < (u_int64_t)fMaxSize) {
@@ -136,7 +139,7 @@ void ByteStreamFileSource::doReadFromFile() {
     fMaxSize = fPreferredFrameSize;
   }
 
-  LL_DEBUG(7, "read maxsize: %d (total: %d)\n", fMaxSize, fFileSize);
+  LL_DEBUG(5, "read maxsize: %d (total: %d)\n", fMaxSize, fFileSize);
 
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
   fFrameSize = fread(fTo, 1, fMaxSize, fFid);

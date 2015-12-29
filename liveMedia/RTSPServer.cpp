@@ -723,15 +723,21 @@ void RTSPServer::RTSPClientConnection::handleAlternativeRequestByte(void* instan
 void RTSPServer::RTSPClientConnection::handleAlternativeRequestByte1(u_int8_t requestByte) {
   if (requestByte == 0xFF) {
     // Hack: The new handler of the input TCP socket encountered an error reading it.  Indicate this:
+DEBUG_MARK
+
     handleRequestBytes(-1);
   } else if (requestByte == 0xFE) {
     // Another hack: The new handler of the input TCP socket no longer needs it, so take back control of it:
+DEBUG_MARK
+
     envir().taskScheduler().setBackgroundHandling(fClientInputSocket, SOCKET_READABLE|SOCKET_EXCEPTION,
 						  incomingRequestHandler, this);
   } else {
     // Normal case: Add this character to our buffer; then try to handle the data that we have buffered so far:
     if (fRequestBufferBytesLeft == 0 || fRequestBytesAlreadySeen >= REQUEST_BUFFER_SIZE) return;
     fRequestBuffer[fRequestBytesAlreadySeen] = requestByte;
+DEBUG_MARK
+
     handleRequestBytes(1);
   }
 }
@@ -920,6 +926,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	  handleCmd_notSupported();
 	}
       } else if (strcmp(cmdName, "DESCRIBE") == 0) {
+      LL_DEBUG(4, "handle cmd DESCRIBE...\n");
 	handleCmd_DESCRIBE(urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
       } else if (strcmp(cmdName, "SETUP") == 0) {
 	Boolean areAuthenticated = True;
@@ -945,6 +952,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	  }
 	}
 	if (clientSession != NULL) {
+      LL_DEBUG(4, "handle cmd SETUP...\n");
 	  clientSession->handleCmd_SETUP(this, urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
 	  playAfterSetup = clientSession->fStreamAfterSETUP;
 	} else if (areAuthenticated) {
@@ -1000,6 +1008,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	// Check that the HTTP command is valid for RTSP-over-HTTP tunneling: There must be a 'session cookie'.
 	Boolean isValidHTTPCmd = True;
 	if (strcmp(cmdName, "OPTIONS") == 0) {
+      LL_DEBUG(4, "handle cmd OPTIONS...\n");
 	  handleHTTPCmd_OPTIONS();
 	} else if (sessionCookie[0] == '\0') {
 	  // There was no "x-sessioncookie:" header.  If there was an "Accept: application/x-rtsp-tunnelled" header,
@@ -1259,6 +1268,7 @@ void RTSPServer::RTSPClientConnection
 ::changeClientInputSocket(int newSocketNum, unsigned char const* extraData, unsigned extraDataSize) {
   envir().taskScheduler().disableBackgroundHandling(fClientInputSocket);
   fClientInputSocket = newSocketNum;
+  LL_DEBUG(4, "set incominghandler\n");
   envir().taskScheduler().setBackgroundHandling(fClientInputSocket, SOCKET_READABLE|SOCKET_EXCEPTION,
 						incomingRequestHandler, this);
   
@@ -1747,12 +1757,15 @@ void RTSPServer::RTSPClientSession
   }
   
   if (strcmp(cmdName, "TEARDOWN") == 0) {
+  LL_DEBUG(4, "handle cmd TEARDOWN...\n");
     handleCmd_TEARDOWN(ourClientConnection, subsession);
   } else if (strcmp(cmdName, "PLAY") == 0) {
+    LL_DEBUG(4, "handle cmd PLAY...\n");
     handleCmd_PLAY(ourClientConnection, subsession, fullRequestStr);
   } else if (strcmp(cmdName, "PAUSE") == 0) {
     handleCmd_PAUSE(ourClientConnection, subsession);
   } else if (strcmp(cmdName, "GET_PARAMETER") == 0) {
+    LL_DEBUG(4, "handle cmd GET_PARAMETER...\n");
     handleCmd_GET_PARAMETER(ourClientConnection, subsession, fullRequestStr);
   } else if (strcmp(cmdName, "SET_PARAMETER") == 0) {
     handleCmd_SET_PARAMETER(ourClientConnection, subsession, fullRequestStr);
@@ -1946,6 +1959,7 @@ void RTSPServer::RTSPClientSession
       unsigned short rtpSeqNum = 0;
       unsigned rtpTimestamp = 0;
       if (fStreamStates[i].subsession == NULL) continue;
+	  LL_DEBUG(4, "startStream idx: %d...\n", i);
       fStreamStates[i].subsession->startStream(fOurSessionId,
 					       fStreamStates[i].streamToken,
 					       (TaskFunc*)noteClientLiveness, this,

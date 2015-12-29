@@ -115,13 +115,16 @@ H264or5VideoRTPSink::~H264or5VideoRTPSink() {
 Boolean H264or5VideoRTPSink::continuePlaying() {
   // First, check whether we have a 'fragmenter' class set up yet.
   // If not, create it now:
+  // 在这里创建H264or5Fragmenter，这个是继承source的
   if (fOurFragmenter == NULL) {
+  	// 参数fSource:
     fOurFragmenter = new H264or5Fragmenter(fHNumber, envir(), fSource, OutPacketBuffer::maxSize,
 					   ourMaxPacketSize() - 12/*RTP hdr size*/);
   } else {
     fOurFragmenter->reassignInputSource(fSource);
   }
-  fSource = fOurFragmenter;
+  fSource = fOurFragmenter; // 赋值，后面会使用到fSource
+DEBUG_MARK
 
   // Then call the parent class's implementation:
   return MultiFramedRTPSink::continuePlaying();
@@ -176,12 +179,19 @@ H264or5Fragmenter::~H264or5Fragmenter() {
 }
 
 void H264or5Fragmenter::doGetNextFrame() {
+DEBUG_MARK
+  // 当需要读NAL时，去读
   if (fNumValidDataBytes == 1) {
+  	LL_DEBUG(7, "need to read NAL data.\n");
+	// 如果是file source的话，会调用到FramedSource的getNextFrame函数
+	// fInputSource在父类中定义，在H264or5VideoRTPSink的continuePlaying创建
+	// H264or5Fragmenter，并赋值fSource(第三个参数)为fInputSource
+	// afterGettingFrame为函数指针，在FramedSource类的afterGetting会调用到这个函数
     // We have no NAL unit data currently in the buffer.  Read a new one:
     fInputSource->getNextFrame(&fInputBuffer[1], fInputBufferSize - 1,
 			       afterGettingFrame, this,
 			       FramedSource::handleClosure, this);
-  } else {
+  } else {  // 不需要时，则组包
     // We have NAL unit data in the buffer.  There are three cases to consider:
     // 1. There is a new NAL unit in the buffer, and it's small enough to deliver
     //    to the RTP sink (as is).
@@ -261,7 +271,9 @@ void H264or5Fragmenter::doGetNextFrame() {
       fNumValidDataBytes = fCurDataOffset = 1;
     }
 
+DEBUG_MARK
     // Complete delivery to the client:
+    // 调用到父类的父类的afterGetting
     FramedSource::afterGetting(this);
   }
 }
@@ -272,11 +284,14 @@ void H264or5Fragmenter::doStopGettingFrames() {
   FramedFilter::doStopGettingFrames();
 }
 
+// 这是静态成员，所以才要用void*转成本类，再调用本类的afterGettingFrame1
 void H264or5Fragmenter::afterGettingFrame(void* clientData, unsigned frameSize,
 					  unsigned numTruncatedBytes,
 					  struct timeval presentationTime,
 					  unsigned durationInMicroseconds) {
   H264or5Fragmenter* fragmenter = (H264or5Fragmenter*)clientData;
+  DEBUG_MARK
+  // 继续调用afterGettingFrame1函数
   fragmenter->afterGettingFrame1(frameSize, numTruncatedBytes, presentationTime,
 				 durationInMicroseconds);
 }
@@ -291,6 +306,9 @@ void H264or5Fragmenter::afterGettingFrame1(unsigned frameSize,
   fDurationInMicroseconds = durationInMicroseconds;
 
   // Deliver data to the client:
+  // 真正在此
+  DEBUG_MARK
+  
   doGetNextFrame();
 }
 

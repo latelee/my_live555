@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     strcpy(inputFileName, argv[1]);
   }
-  rtspLog("Using file: %s\n", inputFileName);
+  LL_DEBUG(6, "Using file: %s\n", inputFileName);
   
   // Begin by setting up our usage environment:
   TaskScheduler* scheduler = BasicTaskScheduler::createNew();
@@ -44,6 +44,8 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+	OutPacketBuffer::maxSize = 200000;
+#if 0
   // 组播
   // note 在mingw/linux环境，组播部分代码加上“{}”，会有运行时错误，原因未知
   // Create 'groupsocks' for RTP and RTCP:
@@ -63,7 +65,7 @@ int main(int argc, char** argv) {
   rtcpGroupsock.multicastSendOnly(); // we're a SSM source
 
   // Create a 'H264 Video RTP' sink from the RTP 'groupsock':
-  OutPacketBuffer::maxSize = 200000;
+  
   videoSink = H264VideoRTPSink::createNew(*env, &rtpGroupsock, 96);
 
   // Create (and start) a 'RTCP instance' for this RTP sink:
@@ -92,9 +94,10 @@ int main(int argc, char** argv) {
   //*env << "Beginning streaming...\n";
   rtspLog("Beginning streaming...\n");
   play(); // 播放
-
+#endif
   ////////////////////////////////////////////////////////////////////////
 
+#if 01
   // 单播
   {
     char const* streamName = "h264ESVideo";
@@ -107,7 +110,8 @@ int main(int argc, char** argv) {
 
     announceStream(rtspServer, sms, streamName, inputFileName);
   }
-
+#endif
+  printf("[%s %d] debug: before doEventLoop\n", __func__, __LINE__);
   env->taskScheduler().doEventLoop(); // does not return
 
   return 0; // only to prevent compiler warning

@@ -215,6 +215,9 @@ GenericMediaServer::ClientConnection
   
   // Arrange to handle incoming requests:
   resetRequestBuffer();
+
+DEBUG_MARK
+
   envir().taskScheduler()
     .setBackgroundHandling(fOurSocket, SOCKET_READABLE|SOCKET_EXCEPTION, incomingRequestHandler, this);
 }

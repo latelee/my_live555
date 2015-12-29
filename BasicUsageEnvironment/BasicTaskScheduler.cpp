@@ -59,6 +59,7 @@ void BasicTaskScheduler::schedulerTickTask() {
   scheduleDelayedTask(fMaxSchedulerGranularity, schedulerTickTask, this);
 }
 
+// 一万秒，即11.5天
 #ifndef MILLION
 #define MILLION 1000000
 #endif
@@ -150,6 +151,10 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       fLastHandledSocketNum = sock;
           // Note: we set "fLastHandledSocketNum" before calling the handler,
           // in case the handler calls "doEventLoop()" reentrantly.
+
+          DEBUG_MARK
+
+          // note: 不断调用此指针，tocheck:找出指向谁
       (*handler->handlerProc)(handler->clientData, resultConditionSet);
       break;
     }
@@ -168,6 +173,9 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
 	fLastHandledSocketNum = sock;
 	    // Note: we set "fLastHandledSocketNum" before calling the handler,
             // in case the handler calls "doEventLoop()" reentrantly.
+
+    DEBUG_MARK
+
 	(*handler->handlerProc)(handler->clientData, resultConditionSet);
 	break;
       }
@@ -212,6 +220,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   fDelayQueue.handleAlarm();
 }
 
+// 设置要处理的调度指针
 void BasicTaskScheduler
   ::setBackgroundHandling(int socketNum, int conditionSet, BackgroundHandlerProc* handlerProc, void* clientData) {
   if (socketNum < 0) return;

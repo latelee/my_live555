@@ -216,6 +216,8 @@ void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
   Destinations* destinations
     = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
   if (streamState != NULL) {
+DEBUG_MARK
+
     streamState->startPlaying(destinations, clientSessionId,
 			      rtcpRRHandler, rtcpRRHandlerClientData,
 			      serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);
@@ -552,6 +554,8 @@ void StreamState
 
   if (!fAreCurrentlyPlaying && fMediaSource != NULL) {
     if (fRTPSink != NULL) {
+DEBUG_MARK
+
       fRTPSink->startPlaying(*fMediaSource, afterPlayingStreamState, this);
       fAreCurrentlyPlaying = True;
     } else if (fUDPSink != NULL) {

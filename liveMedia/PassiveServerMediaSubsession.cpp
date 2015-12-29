@@ -178,6 +178,8 @@ void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
   rtpSeqNum = fRTPSink.currentSeqNo();
   rtpTimestamp = fRTPSink.presetNextTimestamp();
 
+DEBUG_MARK
+
   // Try to use a big send buffer for RTP -  at least 0.1 second of
   // specified bandwidth and at least 50 KB
   unsigned streamBitrate = fRTCPInstance == NULL ? 50 : fRTCPInstance->totSessionBW(); // in kbps

@@ -76,7 +76,10 @@ void BasicTaskScheduler0::unscheduleDelayedTask(TaskToken& prevTask) {
 void BasicTaskScheduler0::doEventLoop(char volatile* watchVariable) {
   // Repeatedly loop, handling readble sockets and timed events:
   while (1) {
-    if (watchVariable != NULL && *watchVariable != 0) break;
+    if (watchVariable != NULL && *watchVariable != 0) {
+		LL_DEBUG(4, "break. watchVariable: %d\n", watchVariable);
+		break;
+    }
     SingleStep();
   }
 }

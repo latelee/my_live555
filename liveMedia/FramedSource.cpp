@@ -65,18 +65,23 @@ void FramedSource::getNextFrame(unsigned char* to, unsigned maxSize,
     envir().internalError();
   }
 
-  fTo = to;
-  fMaxSize = maxSize;
+  fTo = to;           // 缓冲区指针
+  fMaxSize = maxSize; // 最大值
   fNumTruncatedBytes = 0; // by default; could be changed by doGetNextFrame()
   fDurationInMicroseconds = 0; // by default; could be changed by doGetNextFrame()
-  fAfterGettingFunc = afterGettingFunc;
+  fAfterGettingFunc = afterGettingFunc; // 这个函数，在afterGetting会调到到
   fAfterGettingClientData = afterGettingClientData;
   fOnCloseFunc = onCloseFunc;
   fOnCloseClientData = onCloseClientData;
   fIsCurrentlyAwaitingData = True;
 
-  // 是文件dource的，调用ByteStreamFileSource类的doGetNextFrame函数
-  // 最后又会调用到本类的afterGetting函数
+  DEBUG_MARK
+
+  // 纯虚函数，由子类实现
+  // 比如h264的file source，对应类为ByteStreamFileSource的doGetNextFrame函数，
+  // 在h264 RTPSink中，会调用H264or5Fragmenter的doGetNextFrame函数，
+  // (注意，这个函数在不同的类中被调用到)
+  // 该函数最后调用了FramedSource::afterGetting(即下面的函数)
   doGetNextFrame();
 }
 
@@ -86,7 +91,12 @@ void FramedSource::afterGetting(FramedSource* source) {
       // Note that this needs to be done here, in case the "fAfterFunc"
       // called below tries to read another frame (which it usually will)
 
+  // 在哪里注册这个?
+  // h264是H264or5Fragmenter::afterGettingFrame函数
+  // 其它的:
   if (source->fAfterGettingFunc != NULL) {
+    DEBUG_MARK
+
     (*(source->fAfterGettingFunc))(source->fAfterGettingClientData,
 				   source->fFrameSize, source->fNumTruncatedBytes,
 				   source->fPresentationTime,

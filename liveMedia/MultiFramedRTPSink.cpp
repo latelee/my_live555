@@ -149,6 +149,8 @@ void MultiFramedRTPSink::setFramePadding(unsigned numPaddingBytes) {
 Boolean MultiFramedRTPSink::continuePlaying() {
   // Send the first packet.
   // (This will also schedule any future sends.)
+DEBUG_MARK
+
   buildAndSendPacket(True);
   return True;
 }
@@ -188,6 +190,9 @@ void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
   fTotalFrameSpecificHeaderSizes = 0;
   fNoFramesLeft = False;
   fNumFramesUsedSoFar = 0;
+
+DEBUG_MARK
+
   packFrame();
 }
 
@@ -201,6 +206,7 @@ void MultiFramedRTPSink::packFrame() {
     struct timeval presentationTime = fOutBuf->overflowPresentationTime();
     unsigned durationInMicroseconds = fOutBuf->overflowDurationInMicroseconds();
     fOutBuf->useOverflowData();
+DEBUG_MARK
 
     afterGettingFrame1(frameSize, 0, presentationTime, durationInMicroseconds);
   } else {
@@ -212,17 +218,22 @@ void MultiFramedRTPSink::packFrame() {
     fOutBuf->skipBytes(fCurFrameSpecificHeaderSize);
     fTotalFrameSpecificHeaderSizes += fCurFrameSpecificHeaderSize;
 
+DEBUG_MARK
+
+    // 到这里，从fSource拿下一帧,即FramedSource(在MediaSink中定义)的getNextFrame函数
     fSource->getNextFrame(fOutBuf->curPtr(), fOutBuf->totalBytesAvailable(),
 			  afterGettingFrame, this, ourHandleClosure, this);
   }
 }
 
+// 这是静态变量，所以要用void*转换为类，再调用类的afterGettingFrame1函数
 void MultiFramedRTPSink
 ::afterGettingFrame(void* clientData, unsigned numBytesRead,
 		    unsigned numTruncatedBytes,
 		    struct timeval presentationTime,
 		    unsigned durationInMicroseconds) {
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)clientData;
+  DEBUG_MARK
   sink->afterGettingFrame1(numBytesRead, numTruncatedBytes,
 			   presentationTime, durationInMicroseconds);
 }
@@ -240,7 +251,8 @@ void MultiFramedRTPSink
   if (fInitialPresentationTime.tv_sec == 0 && fInitialPresentationTime.tv_usec == 0) {
     fInitialPresentationTime = presentationTime;
   }    
-
+  // 缓冲区不够大，提示用户，但这个函数不会做什么操作
+  // 影响:会丢帧，用vlc看，视频有马赛克现象
   if (numTruncatedBytes > 0) {
     unsigned const bufferSize = fOutBuf->totalBytesAvailable();
     envir() << "MultiFramedRTPSink::afterGettingFrame1(): The input frame data was too large for our buffer size ("
@@ -299,6 +311,7 @@ void MultiFramedRTPSink
 
   if (numFrameBytesToUse == 0 && frameSize > 0) {
     // Send our packet now, because we have filled it up:
+    DEBUG_MARK
     sendPacketIfNecessary();
   } else {
     // Use this frame in our outgoing packet:
@@ -307,6 +320,7 @@ void MultiFramedRTPSink
         // do this now, in case "doSpecialFrameHandling()" calls "setFramePadding()" to append padding bytes
 
     // Here's where any payload format specific processing gets done:
+    // 处理特殊的帧
     doSpecialFrameHandling(curFragmentationOffset, frameStart,
 			   numFrameBytesToUse, presentationTime,
 			   overflowBytes);
@@ -336,9 +350,13 @@ void MultiFramedRTPSink
         || !frameCanAppearAfterPacketStart(fOutBuf->curPtr() - frameSize,
 					   frameSize) ) {
       // The packet is ready to be sent now
+      DEBUG_MARK
+
       sendPacketIfNecessary();
     } else {
       // There's room for more frames; try getting another:
+      DEBUG_MARK
+      
       packFrame();
     }
   }
@@ -403,6 +421,7 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
       uSecondsToGo = 0;
     }
 
+    DEBUG_MARK
     // Delay this amount of time:
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecondsToGo, (TaskFunc*)sendNext, this);
   }
@@ -411,6 +430,10 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
 // The following is called after each delay between packet sends:
 void MultiFramedRTPSink::sendNext(void* firstArg) {
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)firstArg;
+
+  DEBUG_MARK
+
+  
   sink->buildAndSendPacket(False);
 }
 

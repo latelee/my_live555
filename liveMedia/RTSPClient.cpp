@@ -1385,6 +1385,8 @@ void RTSPClient::handleAlternativeRequestByte1(u_int8_t requestByte) {
     handleResponseBytes(-1);
   } else if (requestByte == 0xFE) {
     // Another hack: The new handler of the input TCP socket no longer needs it, so take back control:
+DEBUG_MARK
+
     envir().taskScheduler().setBackgroundHandling(fInputSocketNum, SOCKET_READABLE|SOCKET_EXCEPTION,
 						  (TaskScheduler::BackgroundHandlerProc*)&incomingDataHandler, this);
   } else {
@@ -1547,6 +1549,8 @@ void RTSPClient::connectionHandler1() {
 
 void RTSPClient::incomingDataHandler(void* instance, int /*mask*/) {
   RTSPClient* client = (RTSPClient*)instance;
+DEBUG_MARK
+
   client->incomingDataHandler1();
 }
 

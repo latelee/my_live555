@@ -23,15 +23,4 @@ void rtspLogSetCallback(log_handle_fn_t fn);
  */
 extern void rtspLog(const char* fmt, ...)__attribute__((format(printf,1,2)));
 
-#if 0
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
 #endif

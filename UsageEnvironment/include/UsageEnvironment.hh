@@ -47,7 +47,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 #define _LL_DEBUG_
-#define default_level 5
+#define default_level 6
 
 #ifdef _LL_DEBUG_
     #define debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -58,8 +58,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
     }while (0)
 #else
     #define debug(fmt, ...)
-    #define LL_DEBUG(fmt, ...)
+    #define LL_DEBUG(level, fmt, ...)
+	#define DEBUG_MARK 
 #endif
+#define DEBUG_MARK //LL_DEBUG(5, "MARK...\n");
+
+
 
 class TaskScheduler; // forward
 

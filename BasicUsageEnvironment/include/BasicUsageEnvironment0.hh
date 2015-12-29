@@ -32,6 +32,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "DelayQueue.hh"
 #endif
 
+#include <stdio.h>
+
 #define RESULT_MSG_BUFFER_MAX 1000
 
 // An abstract base class, useful for subclassing
