@@ -127,6 +127,8 @@ Boolean H264or5VideoRTPSink::continuePlaying() {
   return MultiFramedRTPSink::continuePlaying();
 }
 
+//  处理RTP包头
+// 该函数在MultiFramedRTPSink::afterGettingFrame1()中调用
 void H264or5VideoRTPSink::doSpecialFrameHandling(unsigned /*fragmentationOffset*/,
 						 unsigned char* /*frameStart*/,
 						 unsigned /*numBytesInFrame*/,
@@ -141,12 +143,12 @@ void H264or5VideoRTPSink::doSpecialFrameHandling(unsigned /*fragmentationOffset*
     // This relies on our fragmenter's source being a "H264or5VideoStreamFramer".
     if (((H264or5Fragmenter*)fOurFragmenter)->lastFragmentCompletedNALUnit()
 	&& framerSource != NULL && framerSource->pictureEndMarker()) {
-      setMarkerBit();
+      setMarkerBit(); // 设置marker位 条件见上注释
       framerSource->pictureEndMarker() = False;
     }
   }
 
-  setTimestamp(framePresentationTime);
+  setTimestamp(framePresentationTime); // 设置时间戳
 }
 
 Boolean H264or5VideoRTPSink

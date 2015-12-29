@@ -31,6 +31,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <fcntl.h>
 #endif
 
+// 这个宏只有有win32环境下才打开(tocheck:mingw环境是否也这样?)
 #define READ_FROM_FILES_SYNCHRONOUSLY 1
     // Because Windows is a silly toy operating system that doesn't (reliably) treat
     // open files as being readable sockets (which can be handled within the default

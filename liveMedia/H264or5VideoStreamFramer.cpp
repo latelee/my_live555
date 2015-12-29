@@ -942,6 +942,7 @@ void H264or5VideoStreamParser::flushInput() {
 
 #define NUM_NEXT_SLICE_HEADER_BYTES_TO_ANALYZE 12
 
+// 解析h264/h265 NALU
 unsigned H264or5VideoStreamParser::parse() {
   try {
     // The stream must start with a 0x00000001:
@@ -1093,6 +1094,7 @@ unsigned H264or5VideoStreamParser::parse() {
       // Later, perhaps adjust "fPresentationTime" if we saw a "pic_timing" SEI payload??? #####
     }
 
+    // 更新fPresentationTime值
     usingSource()->setPresentationTime();
 #ifdef DEBUG
     unsigned long secs = (unsigned long)usingSource()->fPresentationTime.tv_sec;
