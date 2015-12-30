@@ -85,15 +85,14 @@ void FramedSource::getNextFrame(unsigned char* to, unsigned maxSize,
   doGetNextFrame();
 }
 
+// 由于FramedSource是派生出很多类，该函数会被比较多的子类调用，不同的子类实现不同的fAfterGettingFunc函数
+// 比如h264是H264or5Fragmenter::afterGettingFrame函数
+// 
 void FramedSource::afterGetting(FramedSource* source) {
   source->fIsCurrentlyAwaitingData = False;
       // indicates that we can be read again
       // Note that this needs to be done here, in case the "fAfterFunc"
       // called below tries to read another frame (which it usually will)
-
-  // 在哪里注册这个?
-  // h264是H264or5Fragmenter::afterGettingFrame函数
-  // 其它的:
   if (source->fAfterGettingFunc != NULL) {
     DEBUG_MARK
 

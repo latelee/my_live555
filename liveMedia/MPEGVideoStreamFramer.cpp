@@ -156,6 +156,8 @@ void MPEGVideoStreamFramer
 }
 
 void MPEGVideoStreamFramer::continueReadProcessing() {
+  DEBUG_MARK
+  // 如果是h264，调用H264or5VideoStreamParser的parse函数
   unsigned acquiredFrameSize = fParser->parse();
   if (acquiredFrameSize > 0) {
     // We were able to acquire a frame from the input.
@@ -176,6 +178,7 @@ void MPEGVideoStreamFramer::continueReadProcessing() {
 
     // Call our own 'after getting' function.  Because we're not a 'leaf'
     // source, we can call this directly, without risking infinite recursion.
+    // 调用FramedSource类的afterGetting函数
     afterGetting(this);
   } else {
     // We were unable to parse a complete frame from the input, because:

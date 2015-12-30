@@ -24,6 +24,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 ////////// H264or5VideoStreamParser definition //////////
 
+// 继承MPEGVideoStreamParser，像parse函数，会有父类中使用
 class H264or5VideoStreamParser: public MPEGVideoStreamParser {
 public:
   H264or5VideoStreamParser(int hNumber, H264or5VideoStreamFramer* usingSource,

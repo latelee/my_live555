@@ -139,7 +139,7 @@ void ByteStreamFileSource::doReadFromFile() {
     fMaxSize = fPreferredFrameSize;
   }
 
-  LL_DEBUG(5, "read maxsize: %d (total: %d)\n", fMaxSize, fFileSize);
+  LL_DEBUG(7, "read maxsize: %d (total: %d)\n", fMaxSize, fFileSize);
 
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
   fFrameSize = fread(fTo, 1, fMaxSize, fFid);
