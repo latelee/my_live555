@@ -451,6 +451,7 @@ void RTSPServer::RTSPClientConnection
     session->incrementReferenceCount();
 
     // Then, assemble a SDP description for this session:
+    // SDPÐÅÏ¢
     sdpDescription = session->generateSDPDescription();
     if (sdpDescription == NULL) {
       // This usually means that a file name that was specified for a

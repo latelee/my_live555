@@ -73,6 +73,42 @@ private:
 
 ////////// H264or5VideoStreamFramer implementation //////////
 
+typedef struct _TIME_STRUCT {
+    uint16_t ts_year;     /* year */
+    uint16_t ts_mon;      /* month */
+    uint16_t ts_wday;     /* day of week, since Sunday, range from 0 to 6 */
+    uint16_t ts_day;      /* day of month, range from 1 to 31 */
+    uint16_t ts_hour;     /* hour */
+    uint16_t ts_min;      /* minute */
+    uint16_t ts_sec;      /* second */
+    uint16_t ts_millsec;  /* million second */
+	int16_t  ts_isdst;   /* aylight saving time */
+} TIME_STRUCT;
+
+#include <time.h>
+
+static void convert_ms2time(struct timeval tv, TIME_STRUCT* ts)
+{
+    time_t second = 0;
+    struct tm* timeinfo = NULL;
+
+    if (ts == NULL)
+        return;
+
+    ts->ts_millsec = tv.tv_usec / 1000;
+    second = tv.tv_sec;
+
+    timeinfo = localtime(&second);
+    ts->ts_year = timeinfo->tm_year + 1900;
+    ts->ts_mon  = timeinfo->tm_mon + 1;
+    ts->ts_wday = timeinfo->tm_wday;
+    ts->ts_day  = timeinfo->tm_mday;
+    ts->ts_hour = timeinfo->tm_hour;
+    ts->ts_min  = timeinfo->tm_min;
+    ts->ts_sec  = timeinfo->tm_sec;
+}
+
+
 H264or5VideoStreamFramer
 ::H264or5VideoStreamFramer(int hNumber, UsageEnvironment& env, FramedSource* inputSource,
 			   Boolean createParser, Boolean includeStartCodeInOutput)
@@ -84,7 +120,16 @@ H264or5VideoStreamFramer
   fParser = createParser
     ? new H264or5VideoStreamParser(hNumber, this, inputSource, includeStartCodeInOutput)
     : NULL;
-  fNextPresentationTime = fPresentationTimeBase;
+  fNextPresentationTime = fPresentationTimeBase; // 在这里赋值 fPresentationTimeBase为其父类MPEGVideoStreamFramer的成员
+
+
+  LL_DEBUG(7, "fPresentationTimeBase: %d\n", fPresentationTimeBase.tv_sec);
+        TIME_STRUCT tm_next;
+  convert_ms2time(fPresentationTimeBase, &tm_next);
+  printf("+++H264or5VideoStreamFramer: %04d-%02d-%02d %02d:%02d:%02d:%03d\n", tm_next.ts_year, tm_next.ts_mon, tm_next.ts_day,
+          tm_next.ts_hour, tm_next.ts_min, tm_next.ts_sec, tm_next.ts_millsec);
+  
+
   fFrameRate = 25.0; // We assume a frame rate of 25 fps, unless we learn otherwise (from parsing a VPS or SPS NAL unit)
 }
 
@@ -944,6 +989,7 @@ void H264or5VideoStreamParser::flushInput() {
 #define NUM_NEXT_SLICE_HEADER_BYTES_TO_ANALYZE 12
 
 // 解析h264/h265 NALU
+// 这个函数会不断被调用 在MPEGVideoStreamFramer::continueReadProcessing中调用
 unsigned H264or5VideoStreamParser::parse() {
   try {
     // The stream must start with a 0x00000001:
@@ -1095,14 +1141,24 @@ unsigned H264or5VideoStreamParser::parse() {
       // Later, perhaps adjust "fPresentationTime" if we saw a "pic_timing" SEI payload??? #####
     }
 
-    // 更新fPresentationTime值
+    // 更新fPresentationTime值 此后，fPresentationTime值与fNextPresentationTime值一致
+    // 在本函数后面，又会重新计算fNextPresentationTime的值
+    // 在本类构造函数中已赋值 fNextPresentationTime
     usingSource()->setPresentationTime();
+
+    // debug timestamp
+      TIME_STRUCT tm_next;
+  convert_ms2time(usingSource()->fPresentationTime, &tm_next);
+  LL_DEBUG(7, "+++afterSet--: %04d-%02d-%02d %02d:%02d:%02d:%03d\n", tm_next.ts_year, tm_next.ts_mon, tm_next.ts_day,
+          tm_next.ts_hour, tm_next.ts_min, tm_next.ts_sec, tm_next.ts_millsec);
+  
 #ifdef DEBUG
     unsigned long secs = (unsigned long)usingSource()->fPresentationTime.tv_sec;
     unsigned uSecs = (unsigned)usingSource()->fPresentationTime.tv_usec;
     fprintf(stderr, "\tPresentation time: %lu.%06u\n", secs, uSecs);
 #endif
 
+    // 下面根据thisNALUnitEndsAccessUnit值来调时间戳 这里的判断有点复杂
     // Now, check whether this NAL unit ends an 'access unit'.
     // (RTP streamers need to know this in order to figure out whether or not to set the "M" bit.)
     Boolean thisNALUnitEndsAccessUnit;
@@ -1147,10 +1203,30 @@ unsigned H264or5VideoStreamParser::parse() {
       // Note that the presentation time for the next NAL unit will be different:
       struct timeval& nextPT = usingSource()->fNextPresentationTime; // alias
       nextPT = usingSource()->fPresentationTime;
+
+      ///////////////////
+      struct timeval now_tv;
+      gettimeofday(&now_tv, NULL);
+
+        TIME_STRUCT tm_now, tm_next;
+        convert_ms2time(now_tv, &tm_now);
+        convert_ms2time(nextPT, &tm_next);
+        //printf("+++now: %04d-%02d-%02d %02d:%02d:%02d:%03d\n", tm_now.ts_year, tm_now.ts_mon, tm_now.ts_day,
+        //        tm_now.ts_hour, tm_now.ts_min, tm_now.ts_sec, tm_now.ts_millsec);
+        LL_DEBUG(7, "+++next: %04d-%02d-%02d %02d:%02d:%02d:%03d\n", tm_next.ts_year, tm_next.ts_mon, tm_next.ts_day,
+                tm_next.ts_hour, tm_next.ts_min, tm_next.ts_sec, tm_next.ts_millsec);
+        //////////////////////
+
+      // 更新nextPT 亦即fNextPresentationTime类成员
+      // 25fps，40ms递增
       double nextFraction = nextPT.tv_usec/1000000.0 + 1/usingSource()->fFrameRate;
       unsigned nextSecsIncrement = (long)nextFraction;
       nextPT.tv_sec += (long)nextSecsIncrement;
       nextPT.tv_usec = (long)((nextFraction - nextSecsIncrement)*1000000);
+              convert_ms2time(nextPT, &tm_next);
+        LL_DEBUG(7, "+++afternext: %04d-%02d-%02d %02d:%02d:%02d:%03d (%.1f %d)\n", tm_next.ts_year, tm_next.ts_mon, tm_next.ts_day,
+                tm_next.ts_hour, tm_next.ts_min, tm_next.ts_sec, tm_next.ts_millsec,
+                nextFraction, nextPT.tv_usec/1000);
     }
     setParseState();
 

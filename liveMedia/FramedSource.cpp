@@ -96,9 +96,11 @@ void FramedSource::afterGetting(FramedSource* source) {
   if (source->fAfterGettingFunc != NULL) {
     DEBUG_MARK
 
+    LL_DEBUG(7, "fPresentationTime: %d\n", source->fPresentationTime.tv_usec/1000);
+
     (*(source->fAfterGettingFunc))(source->fAfterGettingClientData,
 				   source->fFrameSize, source->fNumTruncatedBytes,
-				   source->fPresentationTime,
+				   source->fPresentationTime,  // 使用source的的时间戳  在H264or5VideoStreamParser中有更新，见其实现
 				   source->fDurationInMicroseconds);
   }
 }

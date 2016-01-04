@@ -74,6 +74,7 @@ RTPSink::~RTPSink() {
     // its 'groupsock' is being shared with something else that does background read handling).
 }
 
+// 计算RTP的时间戳 fTimestampFrequency由具体的RTPSink初始化，如h264为H264or5VideoRTPSink，构造函数中赋值为9000
 u_int32_t RTPSink::convertToRTPTimestamp(struct timeval tv) {
   // Begin by converting from "struct timeval" units to RTP timestamp units:
   u_int32_t timestampIncrement = (fTimestampFrequency*tv.tv_sec);
@@ -88,11 +89,13 @@ u_int32_t RTPSink::convertToRTPTimestamp(struct timeval tv) {
   }
 
   u_int32_t const rtpTimestamp = fTimestampBase + timestampIncrement;
+
 #ifdef DEBUG_TIMESTAMPS
   fprintf(stderr, "fTimestampBase: 0x%08x, tv: %lu.%06ld\n\t=> RTP timestamp: 0x%08x\n",
 	  fTimestampBase, tv.tv_sec, tv.tv_usec, rtpTimestamp);
   fflush(stderr);
 #endif
+
 
   return rtpTimestamp;
 }

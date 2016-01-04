@@ -43,7 +43,7 @@ MPEGVideoStreamFramer::MPEGVideoStreamFramer(UsageEnvironment& env,
   : FramedFilter(env, inputSource),
     fFrameRate(0.0) /* until we learn otherwise */,
     fParser(NULL) {
-  reset();
+  reset();  // 初始化种种值，如时间戳基准值
 }
 
 MPEGVideoStreamFramer::~MPEGVideoStreamFramer() {
@@ -64,7 +64,9 @@ void MPEGVideoStreamFramer::reset() {
   fHaveSeenFirstTimeCode = False;
 
   // Use the current wallclock time as the base 'presentation time':
-  gettimeofday(&fPresentationTimeBase, NULL);
+  gettimeofday(&fPresentationTimeBase, NULL); // 使用当前的系统时间作为基准值
+
+  LL_DEBUG(7, "fPresentationTimeBase: %d\n", fPresentationTimeBase.tv_sec);
 }
 
 #ifdef DEBUG

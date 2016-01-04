@@ -73,7 +73,7 @@ H264or5VideoRTPSink
 		      u_int8_t const* vps, unsigned vpsSize,
 		      u_int8_t const* sps, unsigned spsSize,
 		      u_int8_t const* pps, unsigned ppsSize)
-  : VideoRTPSink(env, RTPgs, rtpPayloadFormat, 90000, hNumber == 264 ? "H264" : "H265"),
+  : VideoRTPSink(env, RTPgs, rtpPayloadFormat, 90000, hNumber == 264 ? "H264" : "H265"), // 90000是计算timestamp的频率
     fHNumber(hNumber), fOurFragmenter(NULL), fFmtpSDPLine(NULL) {
   if (vps != NULL) {
     fVPSSize = vpsSize;

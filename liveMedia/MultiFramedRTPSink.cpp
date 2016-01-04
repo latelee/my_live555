@@ -103,8 +103,10 @@ void MultiFramedRTPSink::setMarkerBit() {
 
 void MultiFramedRTPSink::setTimestamp(struct timeval framePresentationTime) {
   // First, convert the presentation time to a 32-bit RTP timestamp:
-  fCurrentTimestamp = convertToRTPTimestamp(framePresentationTime);
+  fCurrentTimestamp = convertToRTPTimestamp(framePresentationTime); // 计算出timestamp
 
+  LL_DEBUG(7, "tv: %lu.%06ld\n\t=> RTP timestamp: %u\n",
+	  framePresentationTime.tv_sec, framePresentationTime.tv_usec, fCurrentTimestamp);
   // Then, insert it into the RTP packet:
   fOutBuf->insertWord(fCurrentTimestamp, fTimestampPosition);
 }
@@ -175,6 +177,7 @@ void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
 
   // Note where the RTP timestamp will go.
   // (We can't fill this in until we start packing payload frames.)
+  // fTimestampPosition是时间戳还是表示时间戳的位置?
   fTimestampPosition = fOutBuf->curPacketSize();
   fOutBuf->skipBytes(4); // leave a hole for the timestamp
 
@@ -206,8 +209,6 @@ void MultiFramedRTPSink::packFrame() {
     struct timeval presentationTime = fOutBuf->overflowPresentationTime();
     unsigned durationInMicroseconds = fOutBuf->overflowDurationInMicroseconds();
     fOutBuf->useOverflowData();
-DEBUG_MARK
-
     afterGettingFrame1(frameSize, 0, presentationTime, durationInMicroseconds);
   } else {
     // Normal case: we need to read a new frame from the source
@@ -233,7 +234,7 @@ void MultiFramedRTPSink
 		    struct timeval presentationTime,
 		    unsigned durationInMicroseconds) {
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)clientData;
-  DEBUG_MARK
+  LL_DEBUG(7, "time: %d\n", presentationTime.tv_usec/1000);
   sink->afterGettingFrame1(numBytesRead, numTruncatedBytes,
 			   presentationTime, durationInMicroseconds);
 }
@@ -246,7 +247,7 @@ void MultiFramedRTPSink
     // Record the fact that we're starting to play now:
     gettimeofday(&fNextSendTime, NULL);
   }
-
+  
   fMostRecentPresentationTime = presentationTime;
   if (fInitialPresentationTime.tv_sec == 0 && fInitialPresentationTime.tv_usec == 0) {
     fInitialPresentationTime = presentationTime;
@@ -350,9 +351,7 @@ void MultiFramedRTPSink
         || !frameCanAppearAfterPacketStart(fOutBuf->curPtr() - frameSize,
 					   frameSize) ) {
       // The packet is ready to be sent now
-      DEBUG_MARK
-
-      sendPacketIfNecessary();
+      sendPacketIfNecessary(); // 到这里
     } else {
       // There's room for more frames; try getting another:
       DEBUG_MARK

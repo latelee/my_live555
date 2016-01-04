@@ -128,6 +128,43 @@ void ByteStreamFileSource::fileReadableHandler(ByteStreamFileSource* source, int
   source->doReadFromFile();
 }
 
+///////////////////////////////////////////////////////////////////
+typedef struct _TIME_STRUCT {
+    uint16_t ts_year;     /* year */
+    uint16_t ts_mon;      /* month */
+    uint16_t ts_wday;     /* day of week, since Sunday, range from 0 to 6 */
+    uint16_t ts_day;      /* day of month, range from 1 to 31 */
+    uint16_t ts_hour;     /* hour */
+    uint16_t ts_min;      /* minute */
+    uint16_t ts_sec;      /* second */
+    uint16_t ts_millsec;  /* million second */
+	int16_t  ts_isdst;   /* aylight saving time */
+} TIME_STRUCT;
+
+#include <time.h>
+
+static void convert_ms2time(struct timeval tv, TIME_STRUCT* ts)
+{
+    time_t second = 0;
+    struct tm* timeinfo = NULL;
+
+    if (ts == NULL)
+        return;
+
+    ts->ts_millsec = tv.tv_usec / 1000;
+    second = tv.tv_sec;
+
+    timeinfo = localtime(&second);
+    ts->ts_year = timeinfo->tm_year + 1900;
+    ts->ts_mon  = timeinfo->tm_mon + 1;
+    ts->ts_wday = timeinfo->tm_wday;
+    ts->ts_day  = timeinfo->tm_mday;
+    ts->ts_hour = timeinfo->tm_hour;
+    ts->ts_min  = timeinfo->tm_min;
+    ts->ts_sec  = timeinfo->tm_sec;
+}
+///////////////////////////////////////////////////////////////////
+
 // file source的，在此函数读取文件
 // 一次读fMaxSize，不一定一次只读一帧
 void ByteStreamFileSource::doReadFromFile() {
@@ -177,7 +214,10 @@ void ByteStreamFileSource::doReadFromFile() {
     // so just record the current time as being the 'presentation time':
     gettimeofday(&fPresentationTime, NULL);
   }
-
+  TIME_STRUCT tm_now, tm_next;
+  convert_ms2time(fPresentationTime, &tm_next);
+  printf("+++source: %04d-%02d-%02d %02d:%02d:%02d:%03d\n", tm_next.ts_year, tm_next.ts_mon, tm_next.ts_day,
+          tm_next.ts_hour, tm_next.ts_min, tm_next.ts_sec, tm_next.ts_millsec);
   // Inform the reader that he has data:
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
   // To avoid possible infinite recursion, we need to return to the event loop to do this:
@@ -189,3 +229,6 @@ void ByteStreamFileSource::doReadFromFile() {
   FramedSource::afterGetting(this);
 #endif
 }
+
+
+
